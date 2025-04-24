@@ -1,0 +1,7 @@
+# 示例内容
+.idea/
+.specstory/  # 明确过滤该目录
+db.sqlite3
+__pycache__/
+node_modules/
+*.log
