@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader, ConcatDataset, WeightedRandomSampler
+from torch.utils.data import Dataset, DataLoader, ConcatDataset
 from torchvision import transforms
 from PIL import Image
 from sklearn.model_selection import KFold
@@ -189,25 +189,7 @@ def validate_model(model, val_loader, criterion, device, emotion_labels):
     return running_loss / len(val_loader), correct / total, all_preds, all_labels, class_accuracies
 
 
-# 实现Focal Loss
-class FocalLoss(nn.Module):
-    def __init__(self, alpha=None, gamma=2.0, reduction='mean'):
-        super(FocalLoss, self).__init__()
-        self.alpha = alpha  # 权重系数
-        self.gamma = gamma  # 聚焦参数，增加难分类样本的权重
-        self.reduction = reduction
-        
-    def forward(self, inputs, targets):
-        ce_loss = F.cross_entropy(inputs, targets, reduction='none', weight=self.alpha)
-        pt = torch.exp(-ce_loss)  # 预测概率
-        focal_loss = (1 - pt) ** self.gamma * ce_loss  # 应用聚焦因子
-        
-        if self.reduction == 'mean':
-            return focal_loss.mean()
-        elif self.reduction == 'sum':
-            return focal_loss.sum()
-        else:
-            return focal_loss
+
 
 def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -247,30 +229,13 @@ def main():
         train_dataset = ConcatDataset([fer_train_dataset, rafdb_train_dataset])
         val_dataset = ConcatDataset([fer_val_dataset, rafdb_val_dataset])
         
-        # 为训练集创建WeightedRandomSampler
-        # 获取所有训练样本的标签
-        all_train_labels = []
-        for i in range(len(train_dataset)):
-            _, label = train_dataset[i]
-            all_train_labels.append(label.item())
-        
-        # 计算每个类别的样本权重
-        label_to_count = np.bincount(all_train_labels)
-        weight_per_class = 1. / label_to_count
-        # 增加Fear类别的采样权重
-        weight_per_class[2] *= 1.3  # Fear类别的索引为2（从2.0降低到1.3）
-        
-        # 为每个样本分配权重
-        weights = [weight_per_class[label] for label in all_train_labels]
-        sampler = WeightedRandomSampler(weights, len(weights))
-        
-        # 使用WeightedRandomSampler创建DataLoader
-        train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, sampler=sampler)
+        # 创建DataLoader
+        train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
         val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
         model = MiniXception(input_channels=1).to(device)
-        # 使用Focal Loss替代CrossEntropyLoss
-        criterion = FocalLoss(alpha=class_weights, gamma=1.5)  # gamma从2.0降低到1.5
+        # 使用带权重的CrossEntropyLoss
+        criterion = nn.CrossEntropyLoss(weight=torch.tensor(class_weights, dtype=torch.float32).to(device))
         optimizer = optim.Adam(model.parameters(), lr=LR)
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.5)
 
