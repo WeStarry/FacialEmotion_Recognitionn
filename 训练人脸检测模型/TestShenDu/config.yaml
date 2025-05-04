@@ -1,0 +1,5 @@
+path: D:\py\FacialExpression\TestShenDu\Facedata
+train: images/train
+val: images/val
+nc: 1
+names: ["face"]

@@ -1,3 +1,6 @@
+
+#模型定义文件
+
 import torch
 import torch.nn as nn
 
@@ -5,6 +8,7 @@ import torch.nn as nn
 class ChannelAttention(nn.Module):
     def __init__(self, in_channels):
         super().__init__()
+
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Sequential(
             nn.Linear(in_channels, in_channels // 4),

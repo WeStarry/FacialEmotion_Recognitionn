@@ -1,7 +1,7 @@
 import os
 from PIL import Image
 
-def resize_images(input_dir='image', output_dir='imagechange', size=(100, 100)):
+def resize_images(input_dir='naturalchange', output_dir='naturalchange48', size=(48, 48)):
     # 确保输出目录存在
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)

@@ -28,4 +28,9 @@ urlpatterns = [
     path("api/detect_video/", detect_video, name='detect_video'),
     path("api/detect_realtime/", detect_realtime, name='detect_realtime'),
     path("api/detect-emotion/", detect_emotion, name='detect_emotion'),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+]
+
+# 添加媒体文件URL路由
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

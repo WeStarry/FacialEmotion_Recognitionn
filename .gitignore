@@ -5,3 +5,9 @@ db.sqlite3
 __pycache__/
 node_modules/
 *.log
+models/RAF-DB/
+models/CK+48/
+models/CK+48more/
+models/checkpoints-7labels/
+models/checkpoints-7labels-plus/
+训练人脸检测模型\TestShenDu\Facedata\
